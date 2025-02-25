@@ -5,6 +5,7 @@ import (
 	// "zurich-pos-gin/middleware"
 
 	"test-go/controllers"
+	"test-go/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +15,8 @@ func SetAccountsRoutes(e *gin.Engine) {
 	controllers.AccountsAutoMigrate()
 	accounts := e.Group("/accounts")
 	{
-	// 	accounts.POST("/login", controllers.Login)
+		accounts.POST("/login", controllers.Login)
+		accounts.Use(middleware.VerifyToken)
 		accounts.GET("", controllers.GetAccounts)
 		accounts.GET("/:id", controllers.GetAccountById)
 		accounts.POST("", controllers.CreateAccount)

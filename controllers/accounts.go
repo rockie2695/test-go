@@ -8,6 +8,7 @@ import (
 	"test-go/database"
 	"test-go/middleware"
 	"test-go/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -171,7 +172,24 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
-	// expiresAt := time.Now().Add(24 * time.Hour).Unix()
-	// token, err := middleware.GenerateToken(account, expiresAt)
-
+	expiresAt := time.Now().Add(12 * time.Hour)
+	token, err := middleware.GenerateToken(account, expiresAt)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	accountResponse := models.AccountResponse{
+		ID:        account.ID,
+		Username:  account.Username,
+		CreatedAt: account.CreatedAt,
+		UpdatedAt: account.UpdatedAt,
+		DeletedAt: account.DeletedAt,
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"token":      token,
+		"account":    accountResponse,
+		"expires_at": expiresAt.Format(time.RFC3339),
+	})
 }

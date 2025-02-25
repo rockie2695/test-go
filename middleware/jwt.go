@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"test-go/models"
 
@@ -12,13 +13,15 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(account models.Account, expiresAt int64) (string, error) {
+func GenerateToken(account models.Account, expiresAt time.Time) (string, error) {
 	// expiresAt := time.Now().Add(24 * time.Hour).Unix()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS512, models.AuthClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, models.AuthCustomClaims{
 		UserID: account.ID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   account.Username,
-			ExpiresAt: expiresAt,
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "test-go",
 		},
 	})
 
@@ -51,8 +54,8 @@ func VerifyToken(c *gin.Context) {
 	c.Next()
 }
 
-func validateToken(tokenString string) (int64, string, error) {
-	var claims models.AuthClaims
+func validateToken(tokenString string) (uint64, string, error) {
+	var claims models.AuthCustomClaims
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
