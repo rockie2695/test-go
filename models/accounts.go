@@ -10,13 +10,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// !!!be careful, CreatedAt,UpdatedAt,DeletedAt are automatically managed by GORM
+// when you delete, DeletedAt will be not null and set to time.Now(), you auto can't select any more
 type Account struct {
-	ID        int64          `json:"id" gorm:"primary_key;auto_increment"`
+	ID        uint64         `json:"id" gorm:"primary_key;auto_increment"`
 	Username  string         `json:"username" gorm:"unique;not null"`
 	Password  string         `json:"password" gorm:"not null"`
 	CreatedAt time.Time      `json:"created_at"` // Automatically managed by GORM for creation time
 	UpdatedAt time.Time      `json:"updated_at"` // Automatically managed by GORM for update time
 	DeletedAt gorm.DeletedAt `json:"deleted_at"` // Automatically managed by GORM
+}
+
+type AccountResponse struct {
+	ID        uint64         `json:"id"`
+	Username  string         `json:"username"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
 func GetAccounts(db *gorm.DB) ([]Account, error) {
@@ -31,6 +41,15 @@ func GetAccounts(db *gorm.DB) ([]Account, error) {
 func GetAccountById(db *gorm.DB, id int64) (Account, error) {
 	var account Account
 	err := db.First(&account, id).Error
+	if err != nil {
+		return account, err
+	}
+	return account, nil
+}
+
+func GetAccountByUsername(db *gorm.DB, username string) (Account, error) {
+	var account Account
+	err := db.First(&account, "username = ?", username).Error
 	if err != nil {
 		return account, err
 	}

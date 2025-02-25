@@ -14,7 +14,7 @@ func SetAccountsRoutes(e *gin.Engine) {
 	controllers.AccountsAutoMigrate()
 	accounts := e.Group("/accounts")
 	{
-		accounts.POST("/login", controllers.Login)
+	// 	accounts.POST("/login", controllers.Login)
 		accounts.GET("", controllers.GetAccounts)
 		accounts.GET("/:id", controllers.GetAccountById)
 		accounts.POST("", controllers.CreateAccount)

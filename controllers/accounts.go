@@ -2,9 +2,11 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"test-go/database"
+	"test-go/middleware"
 	"test-go/models"
 
 	"github.com/gin-gonic/gin"
@@ -16,14 +18,25 @@ func AccountsAutoMigrate() {
 }
 
 func GetAccounts(c *gin.Context) {
-	account, err := models.GetAccounts(database.Db)
+	accounts, err := models.GetAccounts(database.Db)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
+	var accountsResponse []models.AccountResponse
+	for _, account := range accounts {
+		accountsResponse = append(accountsResponse, models.AccountResponse{
+			ID:        account.ID,
+			Username:  account.Username,
+			CreatedAt: account.CreatedAt,
+			UpdatedAt: account.UpdatedAt,
+			DeletedAt: account.DeletedAt,
+		})
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"accounts": account,
-		"count":    len(account),
+		"accounts": accountsResponse,
+		"count":    len(accountsResponse),
 	})
 }
 func GetAccountById(c *gin.Context) {
@@ -42,21 +55,47 @@ func GetAccountById(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"account": account})
+	accountResponse := models.AccountResponse{
+		ID:        account.ID,
+		Username:  account.Username,
+		CreatedAt: account.CreatedAt,
+		UpdatedAt: account.UpdatedAt,
+		DeletedAt: account.DeletedAt,
+	}
+	c.JSON(http.StatusOK, gin.H{"account": accountResponse})
 }
 func CreateAccount(c *gin.Context) {
 	var account models.Account
+	var err error
+
 	if err := c.ShouldBindJSON(&account); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if account.Username == "" || account.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect parameters"})
+		return
+	}
+	account.Password, err = middleware.HashPassword(account.Password)
 
-	account, err := models.CreateAccount(database.Db, account)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"account": account})
+	account, err = models.CreateAccount(database.Db, account)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	accountResponse := models.AccountResponse{
+		ID:        account.ID,
+		Username:  account.Username,
+		CreatedAt: account.CreatedAt,
+		UpdatedAt: account.UpdatedAt,
+		DeletedAt: account.DeletedAt,
+	}
+	c.JSON(http.StatusCreated, gin.H{"account": accountResponse})
 }
 func UpdateAccount(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -80,7 +119,14 @@ func UpdateAccount(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"account": account})
+	accountResponse := models.AccountResponse{
+		ID:        account.ID,
+		Username:  account.Username,
+		CreatedAt: account.CreatedAt,
+		UpdatedAt: account.UpdatedAt,
+		DeletedAt: account.DeletedAt,
+	}
+	c.JSON(http.StatusOK, gin.H{"account": accountResponse})
 }
 func DeleteAccount(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -94,4 +140,38 @@ func DeleteAccount(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
+}
+func Login(c *gin.Context) {
+	var loginData struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := c.ShouldBindJSON(&loginData); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "incorrect parameters",
+		})
+		return
+	}
+	account, err := models.GetAccountByUsername(database.Db, loginData.Username)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+				"error": fmt.Sprintf("account %s not found", loginData.Username),
+			})
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if !middleware.CheckPasswordHash(loginData.Password, account.Password) {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "incorrect password",
+		})
+		return
+	}
+	// expiresAt := time.Now().Add(24 * time.Hour).Unix()
+	// token, err := middleware.GenerateToken(account, expiresAt)
+
 }
