@@ -16,6 +16,7 @@ type Account struct {
 	ID        uint64         `json:"id" gorm:"primary_key;auto_increment"`
 	Username  string         `json:"username" gorm:"unique;not null"`
 	Password  string         `json:"password" gorm:"not null"`
+	Token     string         `json:"token" gorm:"not null"`
 	CreatedAt time.Time      `json:"created_at"` // Automatically managed by GORM for creation time
 	UpdatedAt time.Time      `json:"updated_at"` // Automatically managed by GORM for update time
 	DeletedAt gorm.DeletedAt `json:"deleted_at"` // Automatically managed by GORM
@@ -24,9 +25,15 @@ type Account struct {
 type AccountResponse struct {
 	ID        uint64         `json:"id"`
 	Username  string         `json:"username"`
+	Token     string         `json:"token"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+type AccountChangePassword struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
 func GetAccounts(db *gorm.DB) ([]Account, error) {
@@ -38,7 +45,7 @@ func GetAccounts(db *gorm.DB) ([]Account, error) {
 	return Accounts, nil
 }
 
-func GetAccountById(db *gorm.DB, id int64) (Account, error) {
+func GetAccountById(db *gorm.DB, id uint64) (Account, error) {
 	var account Account
 	err := db.First(&account, id).Error
 	if err != nil {
@@ -73,7 +80,7 @@ func UpdateAccount(db *gorm.DB, account Account) (Account, error) {
 	return account, nil
 }
 
-func DeleteAccount(db *gorm.DB, id int64) error {
+func DeleteAccount(db *gorm.DB, id uint64) error {
 	//two way for delete are same
 	// err := db.Delete(&Account{}, id).Error
 	err := db.Where("id = ?", id).Delete(&Account{}).Error

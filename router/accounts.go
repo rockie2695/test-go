@@ -16,11 +16,15 @@ func SetAccountsRoutes(e *gin.Engine) {
 	accounts := e.Group("/accounts")
 	{
 		accounts.POST("/login", controllers.Login)
+		
 		accounts.Use(middleware.VerifyToken)
+		// after login or authentication
+		accounts.POST("/logout", controllers.Logout)
 		accounts.GET("", controllers.GetAccounts)
 		accounts.GET("/:id", controllers.GetAccountById)
 		accounts.POST("", controllers.CreateAccount)
 		accounts.PUT("/:id", controllers.UpdateAccount)
 		accounts.DELETE("/:id", controllers.DeleteAccount)
+		accounts.PUT("/:id/change_password", controllers.UpdateAccountPassword)
 	}
 }

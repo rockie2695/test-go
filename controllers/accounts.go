@@ -28,6 +28,7 @@ func GetAccounts(c *gin.Context) {
 	for _, account := range accounts {
 		accountsResponse = append(accountsResponse, models.AccountResponse{
 			ID:        account.ID,
+			Token:     account.Token,
 			Username:  account.Username,
 			CreatedAt: account.CreatedAt,
 			UpdatedAt: account.UpdatedAt,
@@ -41,7 +42,7 @@ func GetAccounts(c *gin.Context) {
 	})
 }
 func GetAccountById(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -58,6 +59,7 @@ func GetAccountById(c *gin.Context) {
 	}
 	accountResponse := models.AccountResponse{
 		ID:        account.ID,
+		Token:     account.Token,
 		Username:  account.Username,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
@@ -91,6 +93,7 @@ func CreateAccount(c *gin.Context) {
 
 	accountResponse := models.AccountResponse{
 		ID:        account.ID,
+		Token:     account.Token,
 		Username:  account.Username,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
@@ -99,7 +102,7 @@ func CreateAccount(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"account": accountResponse})
 }
 func UpdateAccount(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -114,14 +117,18 @@ func UpdateAccount(c *gin.Context) {
 		return
 	}
 
-	c.ShouldBindJSON(&account)
+	var newAccount models.Account
+	c.ShouldBindJSON(&newAccount)
+	account.Username = newAccount.Username
 	account, err = models.UpdateAccount(database.Db, account)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	c.Set("username", account.Username)
 	accountResponse := models.AccountResponse{
 		ID:        account.ID,
+		Token:     account.Token,
 		Username:  account.Username,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
@@ -130,7 +137,7 @@ func UpdateAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"account": accountResponse})
 }
 func DeleteAccount(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -180,8 +187,20 @@ func Login(c *gin.Context) {
 		})
 		return
 	}
+
+	// update token to account
+	account.Token = token
+	account, err = models.UpdateAccount(database.Db, account)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
 	accountResponse := models.AccountResponse{
 		ID:        account.ID,
+		Token:     account.Token,
 		Username:  account.Username,
 		CreatedAt: account.CreatedAt,
 		UpdatedAt: account.UpdatedAt,
@@ -192,4 +211,81 @@ func Login(c *gin.Context) {
 		"account":    accountResponse,
 		"expires_at": expiresAt.Format(time.RFC3339),
 	})
+}
+
+func Logout(c *gin.Context) {
+	id, _ := c.Get("id")
+
+	account, err := models.GetAccountById(database.Db, id.(uint64))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	account.Token = ""
+	account, err = models.UpdateAccount(database.Db, account)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "logout success",
+	})
+}
+
+func UpdateAccountPassword(c *gin.Context) {
+	var accountChangePassword models.AccountChangePassword
+	c.ShouldBindJSON(&accountChangePassword)
+
+	if accountChangePassword.OldPassword == "" || accountChangePassword.NewPassword == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "incorrect parameters",
+		})
+		return
+	}
+
+	if accountChangePassword.OldPassword == accountChangePassword.NewPassword {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "New password cannot be same as old password",
+		})
+		return
+	}
+	var account models.Account
+	id, _ := strconv.Atoi(c.Param("id"))
+	account, err := models.GetAccountById(database.Db, uint64(id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.ShouldBindJSON(&account)
+
+	if !middleware.CheckPasswordHash(accountChangePassword.OldPassword, account.Password) {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "incorrect password",
+		})
+		return
+	}
+
+	newHash, newHashErr := middleware.HashPassword(accountChangePassword.NewPassword)
+	if newHashErr != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": newHashErr})
+		return
+	}
+
+	account.Password = newHash
+
+	account, err = models.UpdateAccount(database.Db, account)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, account)
 }

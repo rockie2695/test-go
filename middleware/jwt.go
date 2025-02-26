@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"test-go/database"
 	"test-go/models"
 
 	"github.com/gin-gonic/gin"
@@ -48,8 +49,17 @@ func VerifyToken(c *gin.Context) {
 		})
 		return
 	}
+
+	account, err := models.GetAccountById(database.Db, id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "authentication failed.",
+		})
+		return
+	}
 	c.Set("id", id)
 	c.Set("username", username)
+	c.Set("account", account)
 	c.Writer.Header().Set("Authorization", "Bearer "+token)
 	c.Next()
 }
