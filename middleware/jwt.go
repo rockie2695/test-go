@@ -38,14 +38,14 @@ func VerifyToken(c *gin.Context) {
 	token, ok := getToken(c)
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "authentication failed.",
+			"message": "authentication failed.",
 		})
 		return
 	}
 	id, username, err := validateToken(token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "authentication failed.",
+			"message": "authentication failed.",
 		})
 		return
 	}
@@ -53,7 +53,7 @@ func VerifyToken(c *gin.Context) {
 	account, err := models.GetAccountById(database.Db, id)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "authentication failed.",
+			"message": "authentication failed.",
 		})
 		return
 	}

@@ -21,7 +21,7 @@ func AccountsAutoMigrate() {
 func GetAccounts(c *gin.Context) {
 	accounts, err := models.GetAccounts(database.Db)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 	var accountsResponse []models.AccountResponse
@@ -44,17 +44,17 @@ func GetAccounts(c *gin.Context) {
 func GetAccountById(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	account, err := models.GetAccountById(database.Db, id)
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 	accountResponse := models.AccountResponse{
@@ -72,22 +72,22 @@ func CreateAccount(c *gin.Context) {
 	var err error
 
 	if err := c.ShouldBindJSON(&account); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	if account.Username == "" || account.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect parameters"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "incorrect parameters"})
 		return
 	}
 	account.Password, err = middleware.HashPassword(account.Password)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	account, err = models.CreateAccount(database.Db, account)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -104,16 +104,16 @@ func CreateAccount(c *gin.Context) {
 func UpdateAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	account, err := models.GetAccountById(database.Db, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 
@@ -122,7 +122,7 @@ func UpdateAccount(c *gin.Context) {
 	account.Username = newAccount.Username
 	account, err = models.UpdateAccount(database.Db, account)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.Set("username", account.Username)
@@ -139,12 +139,12 @@ func UpdateAccount(c *gin.Context) {
 func DeleteAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	err = models.DeleteAccount(database.Db, id)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
@@ -156,7 +156,7 @@ func Login(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": "incorrect parameters",
+			"message": "incorrect parameters",
 		})
 		return
 	}
@@ -164,18 +164,18 @@ func Login(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-				"error": fmt.Sprintf("account %s not found", loginData.Username),
+				"message": fmt.Sprintf("account %s not found", loginData.Username),
 			})
 			return
 		}
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
 	if !middleware.CheckPasswordHash(loginData.Password, account.Password) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "incorrect password",
+			"message": "incorrect password",
 		})
 		return
 	}
@@ -183,7 +183,7 @@ func Login(c *gin.Context) {
 	token, err := middleware.GenerateToken(account, expiresAt)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
@@ -193,7 +193,7 @@ func Login(c *gin.Context) {
 	account, err = models.UpdateAccount(database.Db, account)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
@@ -219,7 +219,7 @@ func Logout(c *gin.Context) {
 	account, err := models.GetAccountById(database.Db, id.(uint64))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
@@ -228,7 +228,7 @@ func Logout(c *gin.Context) {
 	account, err = models.UpdateAccount(database.Db, account)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"message": err.Error(),
 		})
 		return
 	}
@@ -259,24 +259,24 @@ func UpdateAccountPassword(c *gin.Context) {
 	account, err := models.GetAccountById(database.Db, uint64(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 			return
 		}
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 	c.ShouldBindJSON(&account)
 
 	if !middleware.CheckPasswordHash(accountChangePassword.OldPassword, account.Password) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error": "incorrect password",
+			"message": "incorrect password",
 		})
 		return
 	}
 
 	newHash, newHashErr := middleware.HashPassword(accountChangePassword.NewPassword)
 	if newHashErr != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": newHashErr})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": newHashErr})
 		return
 	}
 
@@ -284,7 +284,7 @@ func UpdateAccountPassword(c *gin.Context) {
 
 	account, err = models.UpdateAccount(database.Db, account)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 	c.JSON(http.StatusOK, account)

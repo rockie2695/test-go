@@ -51,6 +51,6 @@ func getPGConnection() string {
 	dbName := os.Getenv("pg_db")
 
 	// connection := "host=localhost user=gorm password=gorm dbname=gorm port=9920"
-	connection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s TimeZone=Asia/Shanghai", host, username, password, dbName)
+	connection := fmt.Sprintf("host=%s user=%s password=%s dbname=%s TimeZone=Asia/Hong_Kong", host, username, password, dbName)
 	return connection
 }
