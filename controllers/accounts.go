@@ -265,7 +265,6 @@ func UpdateAccountPassword(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
-	c.ShouldBindJSON(&account)
 
 	if !middleware.CheckPasswordHash(accountChangePassword.OldPassword, account.Password) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
