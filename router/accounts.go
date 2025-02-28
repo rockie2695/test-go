@@ -15,8 +15,11 @@ func SetAccountsRoutes(e *gin.Engine) {
 	controllers.AccountsAutoMigrate()
 	accounts := e.Group("/accounts")
 	{
+		accounts.POST("/ping", func(c *gin.Context) {
+			c.String(200, "pong")
+		})
 		accounts.POST("/login", controllers.Login)
-		
+
 		accounts.Use(middleware.VerifyToken)
 		// after login or authentication
 		accounts.POST("/logout", controllers.Logout)

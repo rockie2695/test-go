@@ -150,10 +150,7 @@ func DeleteAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
 }
 func Login(c *gin.Context) {
-	var loginData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	var loginData models.AccountLoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "incorrect parameters",

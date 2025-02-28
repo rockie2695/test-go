@@ -36,6 +36,11 @@ type AccountChangePassword struct {
 	NewPassword string `json:"new_password"`
 }
 
+type AccountLoginData struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func GetAccounts(db *gorm.DB) ([]Account, error) {
 	var Accounts []Account
 	err := db.Find(&Accounts).Error
