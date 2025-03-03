@@ -4,7 +4,7 @@ unknown reason why go test fail
 panic: runtime error: invalid memory address or nil pointer dereference [recovered]
 panic: runtime error: invalid memory address or nil pointer dereference
 */
-// package main
+package main
 
 // import (
 // 	"net/http"
@@ -55,6 +55,9 @@ panic: runtime error: invalid memory address or nil pointer dereference
 // 	if router == nil {
 // 		t.Fatal("Failed to initialize router")
 // 	}
+	
+// 	// Log the router state
+// 	t.Log("Router initialized successfully")
 
 // 	w := httptest.NewRecorder()
 // 	req, err := http.NewRequest("GET", "/ping", nil)
@@ -63,6 +66,7 @@ panic: runtime error: invalid memory address or nil pointer dereference
 // 	}
 // 	router.ServeHTTP(w, req)
 
+// 	t.Logf("Response Code: %d, Response Body: %s", w.Code, w.Body.String())
 // 	assert.Equal(t, 200, w.Code)
 // 	assert.Equal(t, "pong", w.Body.String())
 // }
