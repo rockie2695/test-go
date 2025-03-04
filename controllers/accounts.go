@@ -18,15 +18,25 @@ func AccountsAutoMigrate() {
 	database.Db.AutoMigrate(&models.Account{})
 }
 
+// @Security     BearerAuth
+// @Summary      Get all accounts
+// @Description  Get all accounts
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}   models.AccountResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /accounts [get]
 func GetAccounts(c *gin.Context) {
 	accounts, err := models.GetAccounts(database.Db)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
-	var accountsResponse []models.AccountResponse
+	var accountsResponse []models.AccountWithoutPassword
 	for _, account := range accounts {
-		accountsResponse = append(accountsResponse, models.AccountResponse{
+		accountsResponse = append(accountsResponse, models.AccountWithoutPassword{
 			ID:        account.ID,
 			Token:     account.Token,
 			Username:  account.Username,
@@ -41,6 +51,18 @@ func GetAccounts(c *gin.Context) {
 		"count":    len(accountsResponse),
 	})
 }
+
+// @Security     BearerAuth
+// @Summary      Get account by id
+// @Description  Get account by id
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Account ID"
+// @Success      200  {object}  models.Account
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /accounts/{id} [get]
 func GetAccountById(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -57,7 +79,7 @@ func GetAccountById(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
-	accountResponse := models.AccountResponse{
+	accountResponse := models.AccountWithoutPassword{
 		ID:        account.ID,
 		Token:     account.Token,
 		Username:  account.Username,
@@ -91,7 +113,7 @@ func CreateAccount(c *gin.Context) {
 		return
 	}
 
-	accountResponse := models.AccountResponse{
+	accountResponse := models.AccountWithoutPassword{
 		ID:        account.ID,
 		Token:     account.Token,
 		Username:  account.Username,
@@ -126,7 +148,7 @@ func UpdateAccount(c *gin.Context) {
 		return
 	}
 	c.Set("username", account.Username)
-	accountResponse := models.AccountResponse{
+	accountResponse := models.AccountWithoutPassword{
 		ID:        account.ID,
 		Token:     account.Token,
 		Username:  account.Username,
@@ -149,6 +171,17 @@ func DeleteAccount(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "account deleted"})
 }
+
+// @Summary      Login
+// @Description  Login
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        loginData  body      models.AccountLoginData  true  "credentials"
+// @Success      200  {object}  models.AccountLoginResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /accounts/login [post]
 func Login(c *gin.Context) {
 	var loginData models.AccountLoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
@@ -195,7 +228,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	accountResponse := models.AccountResponse{
+	accountResponse := models.AccountWithoutPassword{
 		ID:        account.ID,
 		Token:     account.Token,
 		Username:  account.Username,

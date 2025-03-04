@@ -4,19 +4,25 @@ import (
 	"test-go/middleware"
 
 	"github.com/gin-gonic/gin"
-	// "log" // Import the log package
+
+	_ "test-go/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func InitRouter() *gin.Engine {
 	router := gin.Default()
-	// router.GET("/ping", func(c *gin.Context) {
-	// 	log.Println("Ping route hit") // Use log.Println instead of t.Log
-	// 	c.String(200, "pong")
-	// })
-	SetCors(router)
-	SetAccountsRoutes(router) // set authentication
-	router.Use(middleware.VerifyToken)
-	SetCustomersRoutes(router)
 	
+	SetCors(router)
+	// use ginSwagger middleware to serve the API docs
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	v1 := router.Group("/api/v1")
+	{
+
+		SetAccountsRoutes(v1) // set authentication
+		router.Use(middleware.VerifyToken)
+		SetCustomersRoutes(v1)
+	}
+
 	return router
 }

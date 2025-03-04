@@ -1,0 +1,188 @@
+basePath: /api/v1
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Account:
+    properties:
+      created_at:
+        description: Automatically managed by GORM for creation time
+        type: string
+      deleted_at:
+        allOf:
+        - $ref: '#/definitions/gorm.DeletedAt'
+        description: Automatically managed by GORM
+      id:
+        type: integer
+      password:
+        type: string
+      token:
+        type: string
+      updated_at:
+        description: Automatically managed by GORM for update time
+        type: string
+      username:
+        type: string
+    type: object
+  models.AccountLoginData:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.AccountLoginResponse:
+    properties:
+      account:
+        $ref: '#/definitions/models.AccountWithoutPassword'
+      expires_at:
+        type: string
+      token:
+        type: string
+    type: object
+  models.AccountResponse:
+    properties:
+      accounts:
+        items:
+          $ref: '#/definitions/models.AccountWithoutPassword'
+        type: array
+      count:
+        type: integer
+    type: object
+  models.AccountWithoutPassword:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      token:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.HTTPError:
+    properties:
+      message:
+        description: Code    int    `json:"code" example:"400"`D
+        example: status bad request
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:9002
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server of go server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      consumes:
+      - application/json
+      description: Get all accounts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Bearer: []
+      summary: Get all accounts
+      tags:
+      - accounts
+  /accounts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get account by id
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - Bearer: []
+      summary: Get account by id
+      tags:
+      - accounts
+  /accounts/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: credentials
+        in: body
+        name: loginData
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccountLoginData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      summary: Login
+      tags:
+      - accounts
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -22,13 +22,18 @@ type Account struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"` // Automatically managed by GORM
 }
 
-type AccountResponse struct {
+type AccountWithoutPassword struct {
 	ID        uint64         `json:"id"`
 	Username  string         `json:"username"`
 	Token     string         `json:"token"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
+}
+
+type AccountResponse struct {
+	Accounts []AccountWithoutPassword `json:"accounts"`
+	Count    int                      `json:"count"`
 }
 
 type AccountChangePassword struct {
@@ -39,6 +44,11 @@ type AccountChangePassword struct {
 type AccountLoginData struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+type AccountLoginResponse struct {
+	Token     string                 `json:"token"`
+	Account   AccountWithoutPassword `json:"account"`
+	ExpiresAt time.Time              `json:"expires_at"`
 }
 
 func GetAccounts(db *gorm.DB) ([]Account, error) {

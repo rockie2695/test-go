@@ -10,14 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetAccountsRoutes(e *gin.Engine) {
+func SetAccountsRoutes(e *gin.RouterGroup) {
 	// accountsRepo := apis.AccountsMigration(db)
 	controllers.AccountsAutoMigrate()
 	accounts := e.Group("/accounts")
 	{
-		// accounts.POST("/ping", func(c *gin.Context) {
-		// 	c.String(200, "pong")
-		// })
 		accounts.POST("/login", controllers.Login)
 
 		accounts.Use(middleware.VerifyToken)

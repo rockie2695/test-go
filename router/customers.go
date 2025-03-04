@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetCustomersRoutes(e *gin.Engine) {
+func SetCustomersRoutes(e *gin.RouterGroup) {
 	// accountsRepo := apis.AccountsMigration(db)
 	controllers.CustomersAutoMigrate()
 	customers := e.Group("/customers")
