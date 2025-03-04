@@ -8,27 +8,6 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
-  models.Account:
-    properties:
-      created_at:
-        description: Automatically managed by GORM for creation time
-        type: string
-      deleted_at:
-        allOf:
-        - $ref: '#/definitions/gorm.DeletedAt'
-        description: Automatically managed by GORM
-      id:
-        type: integer
-      password:
-        type: string
-      token:
-        type: string
-      updated_at:
-        description: Automatically managed by GORM for update time
-        type: string
-      username:
-        type: string
-    type: object
   models.AccountLoginData:
     properties:
       password:
@@ -47,12 +26,8 @@ definitions:
     type: object
   models.AccountResponse:
     properties:
-      accounts:
-        items:
-          $ref: '#/definitions/models.AccountWithoutPassword'
-        type: array
-      count:
-        type: integer
+      account:
+        $ref: '#/definitions/models.AccountWithoutPassword'
     type: object
   models.AccountWithoutPassword:
     properties:
@@ -68,6 +43,15 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  models.AccountsResponse:
+    properties:
+      accounts:
+        items:
+          $ref: '#/definitions/models.AccountWithoutPassword'
+        type: array
+      count:
+        type: integer
     type: object
   models.HTTPError:
     properties:
@@ -104,7 +88,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.AccountResponse'
+            $ref: '#/definitions/models.AccountsResponse'
         "400":
           description: Bad Request
           schema:
@@ -114,7 +98,7 @@ paths:
           schema:
             $ref: '#/definitions/models.HTTPError'
       security:
-      - Bearer: []
+      - BearerAuth: []
       summary: Get all accounts
       tags:
       - accounts
@@ -135,7 +119,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Account'
+            $ref: '#/definitions/models.AccountResponse'
         "400":
           description: Bad Request
           schema:
@@ -145,7 +129,7 @@ paths:
           schema:
             $ref: '#/definitions/models.HTTPError'
       security:
-      - Bearer: []
+      - BearerAuth: []
       summary: Get account by id
       tags:
       - accounts
@@ -180,7 +164,7 @@ paths:
       tags:
       - accounts
 securityDefinitions:
-  Bearer:
+  BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.
     in: header
     name: Authorization

@@ -24,7 +24,7 @@ func AccountsAutoMigrate() {
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}   models.AccountResponse
+// @Success      200  {object}   models.AccountsResponse
 // @Failure      400  {object}  models.HTTPError
 // @Failure      500  {object}  models.HTTPError
 // @Router       /accounts [get]
@@ -59,7 +59,7 @@ func GetAccounts(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      int  true  "Account ID"
-// @Success      200  {object}  models.Account
+// @Success      200  {object}  models.AccountResponse
 // @Failure      400  {object}  models.HTTPError
 // @Failure      500  {object}  models.HTTPError
 // @Router       /accounts/{id} [get]
@@ -89,6 +89,19 @@ func GetAccountById(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"account": accountResponse})
 }
+
+// @Security     BearerAuth
+// @Summary      Create account
+// @Description  Create account
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        account  body      models.Account  true  "Account Data"
+// @Success      201       {object}  models.AccountResponse
+// @Failure      400       {object}  models.HTTPError
+// @Failure      500       {object}  models.HTTPError
+// @Router       /accounts [post]
+
 func CreateAccount(c *gin.Context) {
 	var account models.Account
 	var err error
@@ -123,6 +136,19 @@ func CreateAccount(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"account": accountResponse})
 }
+// @Security     BearerAuth
+// @Summary      Update account
+// @Description  Update account
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      uint64  true  "account id"
+// @Param        account  body      models.AccountWithoutPassword  true  "account data"
+// @Success      200  {object}  models.AccountWithoutPassword
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /accounts/{id} [put]
+
 func UpdateAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -158,6 +184,19 @@ func UpdateAccount(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"account": accountResponse})
 }
+
+// @Security     BearerAuth
+// @Summary      Delete account
+// @Description  Delete account
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      uint64  true  "account id"
+// @Success      200  {object}  models.HTTPResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /accounts/{id} [delete]
+
 func DeleteAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -242,6 +281,17 @@ func Login(c *gin.Context) {
 		"expires_at": expiresAt.Format(time.RFC3339),
 	})
 }
+// @Security     BearerAuth
+// @Summary      Logout
+// @Description  Logout account
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.HTTPResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Security     BearerAuth
+// @Router       /accounts/logout [post]
 
 func Logout(c *gin.Context) {
 	id, _ := c.Get("id")
@@ -266,6 +316,19 @@ func Logout(c *gin.Context) {
 		"message": "logout success",
 	})
 }
+// @Security     BearerAuth
+// @Summary      Update account password
+// @Description  Update account password
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param        id   path      uint64  true  "account id"
+// @Param        accountChangePassword  body      models.AccountChangePassword  true  "credentials"
+// @Success      200  {object}  models.AccountWithoutPassword
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Security     BearerAuth
+// @Router       /accounts/{id}/password [put]
 
 func UpdateAccountPassword(c *gin.Context) {
 	var accountChangePassword models.AccountChangePassword

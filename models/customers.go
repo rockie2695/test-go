@@ -21,6 +21,13 @@ type Customer struct {
 	UpdatedAt time.Time      `json:"updated_at"` // Automatically managed by GORM for update time
 	DeletedAt gorm.DeletedAt `json:"deleted_at"` // Automatically managed by GORM
 }
+type CustomersResponse struct {
+	Customers []Customer `json:"customers"`
+	Count     int        `json:"count"`
+}
+type CustomerResponse struct {
+	Customer Customer `json:"customer"`
+}
 
 func GetCustomers(db *gorm.DB) ([]Customer, error) {
 	var customers []Customer

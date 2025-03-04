@@ -28,7 +28,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "Bearer": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Get all accounts",
@@ -46,7 +46,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.AccountResponse"
+                            "$ref": "#/definitions/models.AccountsResponse"
                         }
                     },
                     "400": {
@@ -114,7 +114,7 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "Bearer": []
+                        "BearerAuth": []
                     }
                 ],
                 "description": "Get account by id",
@@ -141,7 +141,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Account"
+                            "$ref": "#/definitions/models.AccountResponse"
                         }
                     },
                     "400": {
@@ -173,39 +173,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Account": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "description": "Automatically managed by GORM for creation time",
-                    "type": "string"
-                },
-                "deleted_at": {
-                    "description": "Automatically managed by GORM",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gorm.DeletedAt"
-                        }
-                    ]
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "description": "Automatically managed by GORM for update time",
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "models.AccountLoginData": {
             "type": "object",
             "properties": {
@@ -234,14 +201,8 @@ const docTemplate = `{
         "models.AccountResponse": {
             "type": "object",
             "properties": {
-                "accounts": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.AccountWithoutPassword"
-                    }
-                },
-                "count": {
-                    "type": "integer"
+                "account": {
+                    "$ref": "#/definitions/models.AccountWithoutPassword"
                 }
             }
         },
@@ -268,6 +229,20 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AccountsResponse": {
+            "type": "object",
+            "properties": {
+                "accounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.AccountWithoutPassword"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.HTTPError": {
             "type": "object",
             "properties": {
@@ -280,7 +255,7 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "Bearer": {
+        "BearerAuth": {
             "description": "Type \"Bearer\" followed by a space and JWT token.",
             "type": "apiKey",
             "name": "Authorization",

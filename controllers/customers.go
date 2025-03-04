@@ -17,6 +17,15 @@ import (
 func CustomersAutoMigrate() {
 	database.Db.AutoMigrate(&models.Customer{})
 }
+// @Security     BearerAuth
+// @Summary      Get all customers
+// @Description  Get all customers
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}   models.CustomersResponse
+// @Failure      500  {object}  models.HTTPError
+// @Router       /customers [get]
 
 func GetCustomers(c *gin.Context) {
 	customers, err := models.GetCustomers(database.Db)
@@ -24,8 +33,17 @@ func GetCustomers(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"customers": customers})
+	c.JSON(http.StatusOK, gin.H{"customers": customers, "count": len(customers)})
 }
+// @Security     BearerAuth
+// @Summary      Get customer by id
+// @Description  Get customer by id
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}   models.CustomerResponse
+// @Failure      500  {object}  models.HTTPError
+// @Router       /customers/{id} [get]
 
 func GetCustomerById(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -40,6 +58,15 @@ func GetCustomerById(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"customer": customer})
 }
+// @Security     BearerAuth
+// @Summary      Create customer
+// @Description  Create customer
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Success      201  {object}   models.CustomerResponse
+// @Failure      500  {object}  models.HTTPError
+// @Router       /customers [post]
 
 func CreateCustomer(c *gin.Context) {
 	var customer models.Customer
@@ -54,6 +81,16 @@ func CreateCustomer(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"customer": customer})
 }
+// @Security     BearerAuth
+// @Summary      Update customer
+// @Description  Update customer
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}   models.CustomerResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /customers/{id} [put]
 
 func UpdateCustomer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -81,6 +118,16 @@ func UpdateCustomer(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"customer": customer})
 }
+// @Security     BearerAuth
+// @Summary      Delete customer
+// @Description  Delete customer
+// @Tags         customers
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.HTTPResponse
+// @Failure      400  {object}  models.HTTPError
+// @Failure      500  {object}  models.HTTPError
+// @Router       /customers/{id} [delete]
 
 func DeleteCustomer(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

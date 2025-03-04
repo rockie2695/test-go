@@ -31,9 +31,12 @@ type AccountWithoutPassword struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
-type AccountResponse struct {
+type AccountsResponse struct {
 	Accounts []AccountWithoutPassword `json:"accounts"`
 	Count    int                      `json:"count"`
+}
+type AccountResponse struct {
+	Account AccountWithoutPassword `json:"account"`
 }
 
 type AccountChangePassword struct {
