@@ -1,6 +1,8 @@
 package router
 
 import (
+	"test-go/middleware"
+
 	"github.com/gin-gonic/gin"
 	// "log" // Import the log package
 )
@@ -13,6 +15,8 @@ func InitRouter() *gin.Engine {
 	// })
 	SetCors(router)
 	SetAccountsRoutes(router) // set authentication
-	// router.Use(middleware.VerifyToken)
+	router.Use(middleware.VerifyToken)
+	SetCustomersRoutes(router)
+	
 	return router
 }
