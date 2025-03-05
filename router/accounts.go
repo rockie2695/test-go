@@ -8,15 +8,15 @@ import (
 	"test-go/middleware"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func SetAccountsRoutes(e *gin.RouterGroup) {
+func SetAccountsRoutes(e *gin.RouterGroup, db *gorm.DB) {
 	// accountsRepo := apis.AccountsMigration(db)
-	controllers.AccountsAutoMigrate()
+	controllers.AccountsAutoMigrate(db)
 	accounts := e.Group("/accounts")
 	{
 		accounts.POST("/login", controllers.Login)
-
 		accounts.Use(middleware.VerifyToken)
 		// after login or authentication
 		accounts.POST("/logout", controllers.Logout)

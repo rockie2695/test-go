@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"runtime"
 )
 
 var envkey map[string]string
 
 func EnvSetup() {
 
-	jsonFile, err := os.Open("config/env.json")
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(filepath.Dir(b))
+	jsonFile, err := os.Open(filepath.Join(basepath, "config", "env.json"))
 
 	if err != nil {
 		panic("failed to open json file: " + err.Error())

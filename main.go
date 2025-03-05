@@ -32,7 +32,7 @@ import (
 func main() {
 	config.EnvSetup()
 	db := database.InitDb()
-	router := router.InitRouter()
+	router := router.InitRouter(db)
 	// router.Run()
 	router.Run(":9002")
 

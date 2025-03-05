@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"test-go/database"
+
 	// "test-go/middleware"
 	"test-go/models"
 	// "time"
@@ -14,8 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func CustomersAutoMigrate() {
-	database.Db.AutoMigrate(&models.Customer{})
+func CustomersAutoMigrate(db *gorm.DB) {
+	db.AutoMigrate(&models.Customer{})
 }
 
 // @Security     BearerAuth

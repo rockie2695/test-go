@@ -5,11 +5,12 @@ import (
 	// "test-go/middleware"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func SetCustomersRoutes(e *gin.RouterGroup) {
+func SetCustomersRoutes(e *gin.RouterGroup, db *gorm.DB) {
 	// accountsRepo := apis.AccountsMigration(db)
-	controllers.CustomersAutoMigrate()
+	controllers.CustomersAutoMigrate(db)
 	customers := e.Group("/customers")
 	{
 		customers.GET("/", controllers.GetCustomers)

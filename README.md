@@ -21,3 +21,9 @@ go run .
 ```go
 swag fmt
 ```
+
+## test
+
+```go
+go test -v ./test/
+```

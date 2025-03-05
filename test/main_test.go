@@ -1,72 +1,54 @@
-/*
-unknown reason why go test fail
---- FAIL: TestPingRoute (0.00s)
-panic: runtime error: invalid memory address or nil pointer dereference [recovered]
-panic: runtime error: invalid memory address or nil pointer dereference
-*/
 package main
 
-// import (
-// 	"net/http"
-// 	"net/http/httptest"
-// 	// "test-go/config"
-// 	// "test-go/database"
-// 	"test-go/router"
-// 	"testing"
+import (
+	// "encoding/json"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 
-// 	"github.com/stretchr/testify/assert"
-// )
+	// "strings"
+	"test-go/config"
+	"test-go/database"
+	"test-go/models"
+	"test-go/router"
+	"testing"
 
-// func TestPingRoute(t *testing.T) {
-// 	config.EnvSetup()
-// 	database.InitDb()
-// 	router := router.InitRouter()
+	"github.com/stretchr/testify/assert"
+)
 
-// 	w := httptest.NewRecorder()
-// 	req, _ := http.NewRequest("GET", "/ping", nil)
-// 	router.ServeHTTP(w, req)
+func TestGetAccountsRoute(t *testing.T) {
+	config.EnvSetup()
+	db := database.InitDb()
+	router := router.InitRouter(db)
 
-// 	assert.Equal(t, 200, w.Code)
-// 	assert.Equal(t, "pong", w.Body.String())
-// }
+	w := httptest.NewRecorder()
+	//login first
+	loginData := models.AccountLoginData{
+		Username: "a",
+		Password: "b",
+	}
+	jsonLoginData, _ := json.Marshal(loginData)
+	reqLogin, _ := http.NewRequest("POST", "/api/v1/accounts/login", strings.NewReader(string(jsonLoginData)))
+	router.ServeHTTP(w, reqLogin)
 
-// // Test for POST /user/add
-// func TestPostUser(t *testing.T) {
-// 	router := setupRouter()
-// 	router = postUser(router)
+	//put token to auth
+	var loginResponse models.AccountLoginResponse
+	err := json.Unmarshal(w.Body.Bytes(), &loginResponse)
+	assert.NoError(t, err)
 
-// 	w := httptest.NewRecorder()
-
-// 	// Create an example user for testing
-// 	exampleUser := User{
-// 		Username: "test_name",
-// 		Gender:   "male",
-// 	}
-// 	userJson, _ := json.Marshal(exampleUser)
-// 	req, _ := http.NewRequest("POST", "/user/add", strings.NewReader(string(userJson)))
-// 	router.ServeHTTP(w, req)
-
-//		assert.Equal(t, 200, w.Code)
-//		// Compare the response body with the json data of exampleUser
-//		assert.Equal(t, string(userJson), w.Body.String())
-//	}
-// func TestPingRoute(t *testing.T) {
-// 	router := router.InitRouter()
-// 	if router == nil {
-// 		t.Fatal("Failed to initialize router")
-// 	}
-	
-// 	// Log the router state
-// 	t.Log("Router initialized successfully")
-
-// 	w := httptest.NewRecorder()
-// 	req, err := http.NewRequest("GET", "/ping", nil)
-// 	if err != nil {
-// 		t.Fatalf("Failed to create request: %v", err)
-// 	}
-// 	router.ServeHTTP(w, req)
-
-// 	t.Logf("Response Code: %d, Response Body: %s", w.Code, w.Body.String())
-// 	assert.Equal(t, 200, w.Code)
-// 	assert.Equal(t, "pong", w.Body.String())
-// }
+	token := loginResponse.Token
+	req, _ := http.NewRequest("GET", "/api/v1/accounts", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	//make return to string
+	resBody := w.Body.String()
+	//return body is model.AccountsResponse
+	var accountsResponse models.AccountsResponse
+	err = json.Unmarshal([]byte(resBody), &accountsResponse)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, accountsResponse.Accounts)
+	assert.NotEmpty(t, accountsResponse.Count)
+}

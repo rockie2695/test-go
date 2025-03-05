@@ -14,8 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func AccountsAutoMigrate() {
-	database.Db.AutoMigrate(&models.Account{})
+func AccountsAutoMigrate(db *gorm.DB) {
+	db.AutoMigrate(&models.Account{})
 }
 
 // @Security     BearerAuth
@@ -135,6 +135,7 @@ func CreateAccount(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{"account": accountResponse})
 }
+
 // @Security     BearerAuth
 // @Summary      Update account
 // @Description  Update account
@@ -278,6 +279,7 @@ func Login(c *gin.Context) {
 		"expires_at": expiresAt.Format(time.RFC3339),
 	})
 }
+
 // @Security     BearerAuth
 // @Summary      Logout
 // @Description  Logout account
@@ -312,6 +314,7 @@ func Logout(c *gin.Context) {
 		"message": "logout success",
 	})
 }
+
 // @Security     BearerAuth
 // @Summary      Update account password
 // @Description  Update account password
