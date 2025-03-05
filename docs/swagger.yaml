@@ -8,6 +8,34 @@ definitions:
         description: Valid is true if Time is not NULL
         type: boolean
     type: object
+  models.Account:
+    properties:
+      created_at:
+        description: Automatically managed by GORM for creation time
+        type: string
+      deleted_at:
+        allOf:
+        - $ref: '#/definitions/gorm.DeletedAt'
+        description: Automatically managed by GORM
+      id:
+        type: integer
+      password:
+        type: string
+      token:
+        type: string
+      updated_at:
+        description: Automatically managed by GORM for update time
+        type: string
+      username:
+        type: string
+    type: object
+  models.AccountChangePassword:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    type: object
   models.AccountLoginData:
     properties:
       password:
@@ -53,11 +81,65 @@ definitions:
       count:
         type: integer
     type: object
+  models.Customer:
+    properties:
+      address:
+        type: string
+      created_at:
+        description: Automatically managed by GORM for creation time
+        type: string
+      deleted_at:
+        allOf:
+        - $ref: '#/definitions/gorm.DeletedAt'
+        description: Automatically managed by GORM
+      email:
+        type: string
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      phone:
+        type: string
+      updated_at:
+        description: Automatically managed by GORM for update time
+        type: string
+    type: object
+  models.CustomerResponse:
+    properties:
+      customer:
+        $ref: '#/definitions/models.Customer'
+    type: object
+  models.CustomersResponse:
+    properties:
+      count:
+        type: integer
+      customers:
+        items:
+          $ref: '#/definitions/models.Customer'
+        type: array
+      limit:
+        type: string
+      offset:
+        type: string
+      order:
+        type: string
+      search:
+        type: string
+    type: object
   models.HTTPError:
     properties:
       message:
         description: Code    int    `json:"code" example:"400"`D
         example: status bad request
+        type: string
+    type: object
+  models.HTTPResponse:
+    properties:
+      message:
+        description: Code    int    `json:"code" example:"400"`D
+        example: ok
         type: string
     type: object
 externalDocs:
@@ -102,7 +184,68 @@ paths:
       summary: Get all accounts
       tags:
       - accounts
+    post:
+      consumes:
+      - application/json
+      description: Create account
+      parameters:
+      - description: Account Data
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/models.Account'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create account
+      tags:
+      - accounts
   /accounts/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete account
+      parameters:
+      - description: account id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HTTPResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete account
+      tags:
+      - accounts
     get:
       consumes:
       - application/json
@@ -131,6 +274,80 @@ paths:
       security:
       - BearerAuth: []
       summary: Get account by id
+      tags:
+      - accounts
+    put:
+      consumes:
+      - application/json
+      description: Update account
+      parameters:
+      - description: account id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: account data
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccountWithoutPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountWithoutPassword'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update account
+      tags:
+      - accounts
+  /accounts/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Update account password
+      parameters:
+      - description: account id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: credentials
+        in: body
+        name: accountChangePassword
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccountChangePassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AccountWithoutPassword'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Update account password
       tags:
       - accounts
   /accounts/login:
@@ -163,6 +380,192 @@ paths:
       summary: Login
       tags:
       - accounts
+  /accounts/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout account
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HTTPResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - accounts
+  /customers:
+    get:
+      consumes:
+      - application/json
+      description: Get all customers
+      parameters:
+      - description: Search
+        in: query
+        name: search
+        type: string
+      - description: Order
+        in: query
+        name: order
+        type: string
+      - description: Offset
+        in: query
+        name: offset
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CustomersResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get all customers
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: Create customer
+      parameters:
+      - description: Customer
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/models.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CustomerResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Create customer
+      tags:
+      - customers
+  /customers/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete customer
+      parameters:
+      - description: customer id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.HTTPResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Delete customer
+      tags:
+      - customers
+    get:
+      consumes:
+      - application/json
+      description: Get customer by id
+      parameters:
+      - description: customer id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomerResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Get customer by id
+      tags:
+      - customers
+    put:
+      consumes:
+      - application/json
+      description: Update customer
+      parameters:
+      - description: customer id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Customer
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/models.Customer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.CustomerResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.HTTPError'
+      security:
+      - BearerAuth: []
+      summary: Update customer
+      tags:
+      - customers
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

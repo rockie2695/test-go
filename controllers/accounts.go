@@ -101,7 +101,6 @@ func GetAccountById(c *gin.Context) {
 // @Failure      400       {object}  models.HTTPError
 // @Failure      500       {object}  models.HTTPError
 // @Router       /accounts [post]
-
 func CreateAccount(c *gin.Context) {
 	var account models.Account
 	var err error
@@ -148,7 +147,6 @@ func CreateAccount(c *gin.Context) {
 // @Failure      400  {object}  models.HTTPError
 // @Failure      500  {object}  models.HTTPError
 // @Router       /accounts/{id} [put]
-
 func UpdateAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -196,7 +194,6 @@ func UpdateAccount(c *gin.Context) {
 // @Failure      400  {object}  models.HTTPError
 // @Failure      500  {object}  models.HTTPError
 // @Router       /accounts/{id} [delete]
-
 func DeleteAccount(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -292,7 +289,6 @@ func Login(c *gin.Context) {
 // @Failure      500  {object}  models.HTTPError
 // @Security     BearerAuth
 // @Router       /accounts/logout [post]
-
 func Logout(c *gin.Context) {
 	id, _ := c.Get("id")
 
@@ -329,7 +325,6 @@ func Logout(c *gin.Context) {
 // @Failure      500  {object}  models.HTTPError
 // @Security     BearerAuth
 // @Router       /accounts/{id}/password [put]
-
 func UpdateAccountPassword(c *gin.Context) {
 	var accountChangePassword models.AccountChangePassword
 	c.ShouldBindJSON(&accountChangePassword)

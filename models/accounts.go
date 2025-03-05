@@ -17,9 +17,9 @@ type Account struct {
 	Username  string         `json:"username" gorm:"unique;not null"`
 	Password  string         `json:"password" gorm:"not null"`
 	Token     string         `json:"token" gorm:"not null"`
-	CreatedAt time.Time      `json:"created_at"` // Automatically managed by GORM for creation time
-	UpdatedAt time.Time      `json:"updated_at"` // Automatically managed by GORM for update time
-	DeletedAt gorm.DeletedAt `json:"deleted_at"` // Automatically managed by GORM
+	CreatedAt time.Time      `json:"created_at"`              // Automatically managed by GORM for creation time
+	UpdatedAt time.Time      `json:"updated_at"`              // Automatically managed by GORM for update time
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"` // Automatically managed by GORM
 }
 
 type AccountWithoutPassword struct {
